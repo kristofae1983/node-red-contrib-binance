@@ -361,6 +361,50 @@ module.exports = function (RED) {
       });
     });
   }
+  
+  function cancelOrderNode(n) {    //Added
+    RED.nodes.createNode(this,n);
+    var node = this;
+    node.status({});
+    node.binance = RED.nodes.getNode(n.binance);
+    node.ticker = n.ticker;
+
+    node.on('input', function (msg) {
+      if (!node.binance) {
+        node.error(RED._("binance.errors.missing-conf"), msg);
+        return;
+      }
+
+      updateBinanceConfig(node.binance, function () {
+        if (!msg.topic && !node.ticker) {
+          node.error(RED._("binance.errors.missing-ticker"), msg);
+          node.status({fill: "red", shape: "ring", text: RED._("binance.errors.missing-ticker-status")});
+          return;
+        }
+
+        var binance = node.binance ? node.binance.binance: null;
+        var tickerPair = node.ticker || msg.topic;
+        var orderId = node.orderId || msg.topic;
+        tickerPair = tickerPair.toUpperCase();
+
+        // NOTE: will throw exception when bad api credentials are supplied
+        // -- https://github.com/binance-exchange/node-binance-api/issues/117
+        binance.cancel(tickerPair, orderId, function (err, resp) {
+          if (err) {
+            var errorMsg = parseApiError(err);
+            node.error(errorMsg, msg);
+            node.status({fill: "red", shape: "ring", text: errorMsg});
+            return;
+          }
+          node.status({}); //clear status message
+          msg.payload = resp;
+          node.send(msg);
+        });
+      });
+    });
+  }
+  
+  //binance.cancel("ETHBTC", orderid, (error, response, symbol) 
 
   function getTradeHistoryNode(n) {
     RED.nodes.createNode(this,n);
@@ -518,6 +562,7 @@ module.exports = function (RED) {
   RED.nodes.registerType("binance-get-balance", getBalanceNode);
   RED.nodes.registerType("binance-get-orders", getOrdersNode);
   RED.nodes.registerType("binance-cancel-orders", cancelOrdersNode);
+  RED.nodes.registerType("binance-cancel-order", cancelOrderNode);            //Added
   RED.nodes.registerType("binance-get-trade-history", getTradeHistoryNode);
   RED.nodes.registerType("binance-buy", buyNode);
   RED.nodes.registerType("binance-sell", sellNode);
