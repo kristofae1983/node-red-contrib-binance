@@ -729,6 +729,95 @@
 </script>
 
 <!-- =============================
+  BINANCE CANCEL ORDER NODE
+============================= --> 
+
+<script type="text/x-red" data-template-name="binance-cancel-order">
+  <div class="form-row" id="binance-config-row">
+    <label for="node-input-binance"><i class="fa fa-key"></i> <span data-i18n="binance.label.credentials"></span></label>
+    <input type="text" id="node-input-binance">
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> <span data-i18n="node-red:common.label.name"></span></label>
+    <input type="text" id="node-input-name" data-i18n="[placeholder]node-red:common.label.name">
+  </div>
+  <div class="form-row">
+    <label for="node-input-ticker"><i class="fa fa-star"></i> <span data-i18n="binance.label.ticker"></span></label>
+    <input type="text" id="node-input-ticker" data-i18n="[placeholder]binance.placeholder.ticker">
+  </div>
+  <div class="form-row">
+    <label for="node-input-orderid"><i class="fa fa-star"></i> <span data-i18n="binance.label.orderid"></span></label>
+    <input type="text" id="node-input-orderid" data-i18n="[placeholder]binance.placeholder.orderid">
+  </div>  
+</script>
+
+<script type="text/x-red" data-help-name="binance-cancel-order">
+  <h1>cancelOrder</h1>
+  <p>Cancel one open orders of a ticker pair.</p>
+  <h3>Input</h3>
+  <dl class="message-properties">
+    <dt>
+      API credentials
+      <span class="property-type">binance-credentials</span>
+    </dt>
+    <dd>API key and API secret for the Binance account.</dt>
+    <dt>
+      Ticker pair
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The target ticker pair (i.e. BNBBTC). This can be passed in by using the <strong>msg.topic</strong> property and leaving the form input blank</dd>
+    <dt>
+      orderid
+      <span class="property-type">string</span>
+    </dt>
+    <dd>The orderid</dd>	
+  </dl>
+  <h3>Ouput</h3>
+  <dl class="message-properties">
+    <dt>
+      msg.payload
+      <span class="property-type">object | array</span>
+    </dt>
+    <dd>Returns canceled orders. Nothing if no open orders are found for the ticker pair.
+      <p>
+        Example:
+        <code style="white-space: pre-wrap; display: block; font-size: 0.85em;">{
+  "symbol":"BNBBTC",
+  "origClientOrderId":"web_xxx",
+  "orderId":88888888,
+  "clientOrderId":"xxxxxx"
+}</code>
+      </p>
+    </dd>
+  </dl>
+  <h3>Details:</h3>
+  <p>Most responses are directly passed through from the API to the output payload. Errors are directed to the nodes status message as well as the debug console. For more details see the <a href="https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md">Binance REST API documentation</a>.</p>
+  <p>API endpoint: <a target="_blank" href="https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#cancel-order-trade">DELETE /api/v3/order </a></p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('binance-cancel-order', {
+    category: 'function',
+    defaults: {
+      binance: {type: "binance-credentials", validate: validateBinanceNode},
+      name: {value: ""},
+      ticker: {value: ""}
+    },
+    icon: "binance.png",
+    color: "#f3ba2b",
+    inputs: 1,
+    outputs: 1,
+    label: function () {
+      if (this.name) {
+        return this.name;
+      } else {
+        return this.ticker ? "cancelOrder: "+this.ticker: "cancelOrder";
+      }
+    }
+  });
+</script>
+
+<!-- =============================
   BINANCE GET TRADE HISTORY
 ============================= --> 
 
